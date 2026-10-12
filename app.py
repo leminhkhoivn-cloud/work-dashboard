@@ -1,36 +1,46 @@
+import streamlit as st
 import random
 
-def run_app():
-    print("Welcome to the Number Guessing App! 🎮")
-    print("I'm thinking of a number between 1 and 10.")
-    
-    secret_number = random.randint(1, 10)
-    attempts = 3
-    
-    while attempts > 0:
-        guess = input(f"\nYou have {attempts} guesses left. Enter your guess: ")
-        
-        # Check if the user actually entered a number
-        if not guess.isdigit():
-            print("Please enter a valid number.")
-            continue
-            
-        guess = int(guess)
-        
-        # Check if the guess is correct
-        if guess == secret_number:
-            print(f"🎉 Congratulations! You guessed it! The number was {secret_number}.")
-            return
-        elif guess < secret_number:
-            print("Too low!")
-        else:
-            print("Too high!")
-            
-        attempts -= 1
-        
-    print(f"\nGame over! The secret number was {secret_number}.")
+st.set_page_config(page_title="Number Guessing Game", page_icon="🎮")
+st.title("Number Guessing App! 🎮")
+st.write("I'm thinking of a number between 1 and 10.")
 
-# This ensures the app runs when you execute the file
-if __name__ == "__main__":
-    run_app()
+# Initialize Session State to remember values between clicks
+if 'secret_number' not in st.session_state:
+    st.session_state.secret_number = random.randint(1, 10)
+    st.session_state.attempts = 3
+    st.session_state.game_over = False
+
+# The Game Interface
+if not st.session_state.game_over:
+    st.write(f"**You have {st.session_state.attempts} guesses left.**")
     
+    guess = st.number_input("Enter your guess:", min_value=1, max_value=10, step=1)
+    
+    if st.button("Submit Guess"):
+        if guess == st.session_state.secret_number:
+            st.success(f"🎉 Congratulations! You guessed it! The number was {st.session_state.secret_number}.")
+            st.balloons()
+            st.session_state.game_over = True
+            
+        elif guess < st.session_state.secret_number:
+            st.warning("Too low!")
+            st.session_state.attempts -= 1
+            
+        else:
+            st.warning("Too high!")
+            st.session_state.attempts -= 1
+            
+        if st.session_state.attempts == 0 and not st.session_state.game_over:
+            st.error(f"Game over! The secret number was {st.session_state.secret_number}.")
+            st.session_state.game_over = True
+            
+        st.rerun()
+
+# Restart Button
+if st.session_state.game_over:
+    if st.button("Play Again"):
+        st.session_state.secret_number = random.randint(1, 10)
+        st.session_state.attempts = 3
+        st.session_state.game_over = False
+        st.rerun()
